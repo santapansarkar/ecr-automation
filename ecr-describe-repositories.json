@@ -1,0 +1,32 @@
+{
+    "repositories": [
+        {
+            "repositoryArn": "arn:aws:ecr:ap-south-1:350102312519:repository/ecr-santapan-devops",
+            "registryId": "350102312519",
+            "repositoryName": "ecr-santapan-devops",
+            "repositoryUri": "350102312519.dkr.ecr.ap-south-1.amazonaws.com/ecr-santapan-devops",
+            "createdAt": "2021-06-19T20:25:45+05:30",
+            "imageTagMutability": "MUTABLE",
+            "imageScanningConfiguration": {
+                "scanOnPush": false
+            },
+            "encryptionConfiguration": {
+                "encryptionType": "AES256"
+            }
+        },
+        {
+            "repositoryArn": "arn:aws:ecr:ap-south-1:350102312519:repository/hugo-ecr",
+            "registryId": "350102312519",
+            "repositoryName": "hugo-ecr",
+            "repositoryUri": "350102312519.dkr.ecr.ap-south-1.amazonaws.com/hugo-ecr",
+            "createdAt": "2021-07-24T01:16:36+05:30",
+            "imageTagMutability": "MUTABLE",
+            "imageScanningConfiguration": {
+                "scanOnPush": false
+            },
+            "encryptionConfiguration": {
+                "encryptionType": "AES256"
+            }
+        }
+    ]
+}
