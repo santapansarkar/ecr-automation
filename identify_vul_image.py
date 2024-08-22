@@ -18,18 +18,22 @@ def vul_iamge(**vul_image_kwargs):
             )
     #print(response['imageScanFindings']['findingSeverityCounts'])
     resource_arn = response['imageScanFindings']['enhancedFindings'][0]['resources'][0]['id']
+    end_index = resource_arn.index('/')
+    resource_arn = resource_arn.split('/sha256')[0]
     print(resource_arn)
     # Check if any vulnerabilities were found
     vulnerabilities_found = False
     for finding in response['imageScanFindings']['findingSeverityCounts']:
             if finding in ('CRITICAL','HIGH'):
                  vulnerabilities_found = True
-                 tag_vul_images(resource_arn)
             break
 
     if vulnerabilities_found:
         # Prevent the image from being downloaded
         print(f"Vulnerabilities found in {vul_image_kwargs['repository_name']}:{vul_image_kwargs['image_digest']}. Blocking download.")
+
+        print(f"Tagging the ECR image with DEPLOY=NO for this resource {resource_arn}")
+        tag_vul_images(resource_arn)
 
         # Optionally, you can send a notification or take additional actions here
         #send_notification(repository_name, image_digest)
@@ -37,16 +41,37 @@ def vul_iamge(**vul_image_kwargs):
         print(f"No vulnerabilities found in {vul_image_kwargs['repository_name']}:{vul_image_kwargs['image_digest']}. Allowing download.")
 
 def tag_vul_images(resource_arn):
-     response = ecr_client.tag_resource(
-                    resourceArn=resource_arn,
-                    tags=[
-                        {
-                            'Key': 'DEPLOY',
-                            'Value': 'NO'
-                        },
-                    ]
-                )        
-
+        response = ecr_client.batch_get_image(
+            registryId='328753010123',
+            repositoryName='on-demand-scan',
+            imageIds=[
+                {
+                    'imageDigest': 'sha256:3109bef765bdfc6dd8efc1e649bd61141f67a50e0860c1a54847228264328650',
+                    'imageTag': 'dev1'
+                },
+            ]
+        )
+        manifest = response['images'][0]['imageManifest']
+        print(manifest)
+        response = ecr_client.put_image(
+            registryId='328753010123',
+            repositoryName='on-demand-scan',
+            imageManifest=manifest,
+            imageManifestMediaType='application/vnd.docker.distribution.manifest.v2+json',
+            imageTag='NotAllowed'
+        )
+        delet_vul_iamge_tag()
+def delet_vul_iamge_tag():
+    response = ecr_client.batch_delete_image(
+    registryId='328753010123',
+    repositoryName='on-demand-scan',
+    imageIds=[
+        {
+            'imageDigest': 'sha256:3109bef765bdfc6dd8efc1e649bd61141f67a50e0860c1a54847228264328650',
+            'imageTag': 'dev1'
+        },
+    ]
+    )        
 def send_notification(repository_name, image_digest):
     # Code to send a notification (e.g., AWS SNS, email, etc.)
     # For example, using AWS SNS:
