@@ -13,3 +13,4 @@ This package provides functionality to:
 For usage instructions and more details, refer to the project documentation.
 """
 __version__ = '0.1.0'
+__package_name__ = 'ecr_vul_image'

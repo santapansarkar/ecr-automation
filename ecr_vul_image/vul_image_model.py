@@ -94,7 +94,7 @@ def tag_vul_images(image_digest,image_tag,registryId,repositoryName):
         repositoryName=repositoryName,
         imageManifest=manifest,
         imageManifestMediaType='application/vnd.docker.distribution.manifest.v2+json',
-        imageTag='NO_1'
+        imageTag='NO_2'
     )
     delete_img_kwargs = {
          'registryId': registryId,
