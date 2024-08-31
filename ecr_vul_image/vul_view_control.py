@@ -3,6 +3,13 @@ import argparse
 
 
 def image_verify():
+    """
+    Verify vulnerabilities in an ECR image.
+
+    This function parses command-line arguments to get ECR image details,
+    establishes a connection to AWS ECR, and calls the vulnerability check function.
+    """
+    #Establish connection to AWS ECR
     ecr_client = aws_con()
     parser = argparse.ArgumentParser(description='Check for vulnerabilities in an ECR image.')
     parser.add_argument('--repository_name', type=str, required=True, help='The name of the repository that contains the image.')

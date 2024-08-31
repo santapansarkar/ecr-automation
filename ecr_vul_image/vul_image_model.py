@@ -45,7 +45,7 @@ def vul_iamge(**vul_image_kwargs):
                     'imageTag': vul_image_kwargs['image_tag']
                 },
             )
-    #print(response['imageScanFindings']['findingSeverityCounts'])
+    image_digest = response['imageId']['imageDigest']
     resource_arn = response['imageScanFindings']['enhancedFindings'][0]['resources'][0]['id']
     end_index = resource_arn.index('/')
     resource_arn = resource_arn.split('/sha256')[0]
@@ -61,15 +61,15 @@ def vul_iamge(**vul_image_kwargs):
         # Prevent the image from being downloaded
         print(f"Vulnerabilities found in {vul_image_kwargs['repository_name']}:{vul_image_kwargs['image_digest']}. Blocking download.")
 
-        print(f"Tagging the ECR image with DEPLOY=NO for this resource {resource_arn}")
-        tag_vul_images(resource_arn)
+        print(f"Tagging the ECR image with NotApproved for this resource {resource_arn}")
+        tag_vul_images(image_digest,vul_image_kwargs['image_tag'],vul_image_kwargs['registry_id'],vul_image_kwargs['repository_name'])
 
         # Optionally, you can send a notification or take additional actions here
         #send_notification(repository_name, image_digest)
     else:
         print(f"No vulnerabilities found in {vul_image_kwargs['repository_name']}:{vul_image_kwargs['image_digest']}. Allowing download.")
 
-def tag_vul_images(resource_arn):        
+def tag_vul_images(image_digest,image_tag,registryId,repositoryName):        
     """
     Tag a vulnerable ECR image with a specific tag.
 
@@ -78,38 +78,44 @@ def tag_vul_images(resource_arn):
     """    
     ecr_client = aws_con()    
     response = ecr_client.batch_get_image(
-        registryId='328753010123',
-        repositoryName='on-demand-scan',
+        registryId= registryId,
+        repositoryName=repositoryName,
         imageIds=[
             {
-                'imageDigest': 'sha256:3109bef765bdfc6dd8efc1e649bd61141f67a50e0860c1a54847228264328650',
-                'imageTag': 'dev1'
+                'imageDigest': image_digest,
+                'imageTag': image_tag
             },
         ]
     )
     manifest = response['images'][0]['imageManifest']
     print(manifest)
     response = ecr_client.put_image(
-        registryId='328753010123',
-        repositoryName='on-demand-scan',
+        registryId= registryId,
+        repositoryName=repositoryName,
         imageManifest=manifest,
         imageManifestMediaType='application/vnd.docker.distribution.manifest.v2+json',
-        imageTag='NoPull'
+        imageTag='NO_1'
     )
-    delete_vul_iamge_tag()
+    delete_img_kwargs = {
+         'registryId': registryId,
+         'repositoryName': repositoryName,
+         'imageDigest': image_digest,
+         'imageTag': image_tag
+        }
+    delete_vul_iamge_tag(**delete_img_kwargs)
     
-def delete_vul_iamge_tag():
+def delete_vul_iamge_tag(**delete_img_kwargs):
     """
     Delete a specific tag from a vulnerable ECR image.
     """ 
     ecr_client = aws_con()   
     response = ecr_client.batch_delete_image(
-    registryId='328753010123',
-    repositoryName='on-demand-scan',
+    registryId=delete_img_kwargs['registryId'],
+    repositoryName=delete_img_kwargs['repositoryName'],
     imageIds=[
         {
-            'imageDigest': 'sha256:3109bef765bdfc6dd8efc1e649bd61141f67a50e0860c1a54847228264328650',
-            'imageTag': 'dev1'
+            'imageDigest': delete_img_kwargs['imageDigest'] ,
+            'imageTag': delete_img_kwargs['imageTag']
         },
     ]
     )        
